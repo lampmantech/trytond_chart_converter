@@ -34,9 +34,6 @@ oParser.add_option("-t", "--test",
                    default=False,
                    help="run the doctests in this file")
 
-# used by --test doctest only
-INFILE="charts/l10n_uk_smartmode.xml"
-
 # quick and dirty
 dLang=dict()
 dLang['en']=dict()
@@ -80,6 +77,9 @@ dLang['en']['TAX_RULE_4_NAME']="Purchases from abroad"
 
 CURRENT_LANG='en'
 def _(sString): return dLang[CURRENT_LANG][sString]
+
+# the original input, used by --test doctest only
+INFILE='charts/account_chart_netherlands.xml'
 
 class Converter(object):
     """
