@@ -1,0 +1,38 @@
+
+To Do List
+==========
+
+1) Pull out the dependencies on account_chart_netherlands.xml
+from the converter, so that the converter is generic.
+
+In some cases, the converter can read the information it needs
+from reading the Oerp chart, but I'll move this information
+to a config file - for each chart to convert there will be
+a config file, as I think that there's more Oerp dependencies
+to be pulled out, and this in a generic problem for all CoAs.
+We provide a default based on the language (en.cfg nl.cfg) -
+that way we can provide some examples and hopefully standardize
+the chart ids within a language.
+
+2) Turn the quick and dirty locale strings into po files.
+
+3) Pull out the embedded tax rules in:
+   build_tax_rule_template
+   build_tax_rule_line_template
+They may be specific dependencies on account_chart_netherlands.xml
+or they may be generic to all netherlands charts (see below).
+
+I'll check with Paul, but I think they should have been in the
+Oerp xml chart, and just converted by the converter. Or if they are
+Tryton specific per country, then the information should be 
+in a config file, or a separate xml file that gets merged in.
+
+3) I think there is a generic problem in both Tryton and Oerp:
+they include the chart of taxes in the chart of accounts modules.
+In fact, although there are an infinite number of ways to do
+CoAs, depending on the business, there's really only one way
+per country of doing the chart of taxes. Moreover, the CoAs
+often change with time in a company, whereas the CoTs change
+rarely, and do so for every chart in the country when they do.
+Obviously there is information the CoTs need from the CoAs,
+but this could also be a simple config file.
