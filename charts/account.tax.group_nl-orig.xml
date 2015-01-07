@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tryton>
+  <data>
+    <record model="account.tax.group" id="tax_group_sale">
+      <field name="name">B.T.W. Verkoop</field>
+      <field name="code">B.T.W. Verkoop</field>
+    </record>
+    <record model="account.tax.group" id="tax_group_purchase">
+      <field name="name">B.T.W. Inkoop</field>
+      <field name="code">B.T.W. Inkoop</field>
+    </record>
+  </data>
+</tryton>

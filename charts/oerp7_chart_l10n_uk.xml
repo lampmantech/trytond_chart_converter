@@ -990,7 +990,7 @@
             <field name="parent_id" ref="I000"/>
         </record>
         <record id="7700" model="account.account.template">
-            <field name="name">Exchange gains/losses</field>
+            <field name="name">Exchange gains or losses</field>
             <field name="code">7700</field>
             <field name="type">other</field>
             <field name="user_type" ref="account_type_expense"/>
@@ -1084,7 +1084,7 @@
             <field name="parent_id" ref="PNL"/>
         </record>
         <record id="9000" model="account.account.template">
-            <field name="name">Profits/Losses on disposals of assets</field>
+            <field name="name">Profits or Losses on disposals of assets</field>
             <field name="code">9000</field>
             <field name="type">other</field>
             <field name="user_type" ref="account_type_income"/>
@@ -1167,7 +1167,7 @@ account.tax.code.template.csv 1
             <field name="sign" eval="1"/>
         </record>
         <record id="4" model="account.tax.code.template">
-            <field name="name">Net VAT to be paid/reclaimed</field>
+            <field name="name">Net VAT to be paid or reclaimed</field>
             <field name="code">5</field>
             <field name="parent_id" ref="0"/>
             <field name="notprintable" eval="False"/>

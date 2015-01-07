@@ -15,6 +15,8 @@ that way we can provide some examples and hopefully standardize
 the chart ids within a language.
 
 2) Turn the quick and dirty locale strings into po files.
+This may only be a few converter error and usage messages, as all the
+language-specific parts of the charts will be in the config files.
 
 3) Pull out the embedded tax rules in:
    build_tax_rule_template
@@ -27,12 +29,40 @@ Oerp xml chart, and just converted by the converter. Or if they are
 Tryton specific per country, then the information should be 
 in a config file, or a separate xml file that gets merged in.
 
+**All converted charts except the original netherlands one are broken
+until this is fixed.**
+
 3) I think there is a generic problem in both Tryton and Oerp:
 they include the chart of taxes in the chart of accounts modules.
 In fact, although there are an infinite number of ways to do
-CoAs, depending on the business, there's really only one way
-per country of doing the chart of taxes. Moreover, the CoAs
-often change with time in a company, whereas the CoTs change
-rarely, and do so for every chart in the country when they do.
-Obviously there is information the CoTs need from the CoAs,
-but this could also be a simple config file.
+CoAs depending on the business, there's really only one way
+per country of doing the chart of taxes: the government's way!
+
+Moreover, the CoAs often change with time in a company, whereas the
+CoTs change rarely, and do so for every chart in the country when they
+do.  Obviously there is information the CoTs need from the CoAs, but
+this could also be in a simple config file.
+
+
+
+Questions
+=========
+
+Line 196 of converter.py
+##? what about Trytons other kinds?
+Are there any other Oerp user_types from account.account.template?
+YES - liquidity
+
+from trytond_account-3.2.1/account.py:
+```
+   kind = fields.Selection([
+                  ('other', 'Other'),
+		  ('payable', 'Payable'),
+		  ('revenue', 'Revenue'),
+		  ('receivable', 'Receivable'),
+		  ('expense', 'Expense'),
+		  ('stock', 'Stock'),
+		  ('view', 'View'),
+		  ], 'Kind', required=True)
+```
+

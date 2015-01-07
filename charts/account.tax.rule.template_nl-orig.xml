@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tryton>
+  <data>
+    <record model="account.tax.rule.template" id="tax_rule_1">
+      <field name="name">Levering binnenland</field>
+      <field ref="root_nl" name="account"/>
+    </record>
+    <record model="account.tax.rule.template" id="tax_rule_2">
+      <field name="name">Verleggingsregelingen binnenland</field>
+      <field ref="root_nl" name="account"/>
+    </record>
+    <record model="account.tax.rule.template" id="tax_rule_3">
+      <field name="name">Prestaties naar of in het buitenland</field>
+      <field ref="root_nl" name="account"/>
+    </record>
+    <record model="account.tax.rule.template" id="tax_rule_4">
+      <field name="name">Levering vanuit buitenland</field>
+      <field ref="root_nl" name="account"/>
+    </record>
+  </data>
+</tryton>

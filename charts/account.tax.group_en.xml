@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tryton>
+  <data>
+    <record model="account.tax.group" id="tax_group_sale">
+      <field name="name">VAT on Sales</field>
+      <field name="code">VAT on Sales</field>
+    </record>
+    <record model="account.tax.group" id="tax_group_purchase">
+      <field name="name">VAT on Purchases</field>
+      <field name="code">VAT on Purchases</field>
+    </record>
+  </data>
+</tryton>

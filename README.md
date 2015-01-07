@@ -8,10 +8,12 @@ http://github.com/pjstevns/trytond_account_nl/
 
 **THIS IS A WORK IN PROGRESS, UNRELEASED FOR NOW!**
 
+HomePage: 
+
 Ideally, the converter could be internationalized the way Tryton
 modules are, but to start with, there is a simple `--lang`
 command-line switch and an array of strings for each language.
-I;ve started moving some of this information to a config file,
+I've started moving some of this information to a config file,
 and I think that there's more Oerp dependencies to be pulled out.
 Only the original 'nl' and the new 'en' langs are available for now.
 
@@ -42,11 +44,11 @@ this converter matches the output of the original converter:
     make test
 ```
 If you have Oerp 7.0 installed, set the path to the addons
-as OERP_7_ADDONS in charts/Makefile, and if you have Oerp 6.0.4 installed,
-set the path to the addons as OERP_6_ADDONS in charts/Makefile.
-This will run the converter on the $OERP_7_ADDONS/l10_uk/data directory
+as `OERP_7_ADDONS` in `charts/Makefile`, and if you have Oerp 6.0.4 installed,
+set the path to the addons as `OERP_6_ADDONS` in charts/Makefile.
+This will run the converter on the `$OERP_7_ADDONS/l10n_uk/data` directory
 to generate a Tryton CofAs in `accounting_chart_uk_oerp7.xml`
-and accounting_chart_uk_oerp6.xml.
+and `accounting_chart_uk_oerp6.xml`.
 
 
 **Usage: **

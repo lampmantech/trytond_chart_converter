@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tryton>
+  <data>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_1_0">
+      <field ref="tax_rule_1" name="rule"/>
+      <field ref="tax_group_sale" name="group"/>
+      <field ref="btw_0" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_1_6">
+      <field ref="tax_rule_1" name="rule"/>
+      <field ref="tax_group_sale" name="group"/>
+      <field ref="btw_6" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_1_19">
+      <field ref="tax_rule_1" name="rule"/>
+      <field ref="tax_group_sale" name="group"/>
+      <field ref="btw_19" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_3_0">
+      <field ref="tax_rule_3" name="rule"/>
+      <field ref="tax_group_sale" name="group"/>
+      <field ref="btw_X0" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_3_1">
+      <field ref="tax_rule_3" name="rule"/>
+      <field ref="tax_group_sale" name="group"/>
+      <field ref="btw_X1" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_3_2">
+      <field ref="tax_rule_3" name="rule"/>
+      <field ref="tax_group_sale" name="group"/>
+      <field ref="btw_X2" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_4_1">
+      <field ref="tax_rule_4" name="rule"/>
+      <field ref="tax_group_purchase" name="group"/>
+      <field ref="btw_E1_1" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_4_2">
+      <field ref="tax_rule_4" name="rule"/>
+      <field ref="tax_group_purchase" name="group"/>
+      <field ref="btw_E2_1" name="tax"/>
+    </record>
+    <record model="account.tax.rule.line.template" id="tax_rule_line_4_overig">
+      <field ref="tax_rule_4" name="rule"/>
+      <field ref="tax_group_purchase" name="group"/>
+      <field ref="btw_E_overig_1" name="tax"/>
+    </record>
+  </data>
+</tryton>

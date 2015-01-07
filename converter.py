@@ -43,43 +43,33 @@ dLang['nl']=dict()
 ## FixMe: how much of these are coming from the chart itself?
 ## For now, I think it's best to mover them all to the config file.
 
-## I think these could be found by code=0 but that may be just a convention
+##! model="account.chart.template" <field name="account_root_id" ref=
 ##moved dLang['nl']['A_ROOT_ID']='a_root'
 ##moved dLang['en']['A_ROOT_ID']='UK0'
 
-dLang['nl']['ROOT_ACCOUNT_TEMPLATE_ID']='root_nl'
-dLang['en']['ROOT_ACCOUNT_TEMPLATE_ID']='root_uk'
 dLang['nl']['ACCOUNT_TYPE_TEMPLATE_ID']='nl'
 dLang['en']['ACCOUNT_TYPE_TEMPLATE_ID']='uk'
-dLang['nl']['ACCOUNT_TYPE_TEMPLATE_TYPE']='nl'
-dLang['en']['ACCOUNT_TYPE_TEMPLATE_TYPE']='uk'
-dLang['nl']['TAX_CODE_TEMPLATE_ID']="tax_code_nl"
-dLang['en']['TAX_CODE_TEMPLATE_ID']="tax_code_uk"
-
-## arbitrary names - t
-dLang['nl']['ROOT_ACCOUNT_TEMPLATE_NAME']="NEDERLANDS STANDAARD GROOTBOEKSCHEMA"
-dLang['en']['ROOT_ACCOUNT_TEMPLATE_NAME']="UK Standard Account Schema"
 dLang['nl']['ACCOUNT_TYPE_TEMPLATE_NAME']="Dutch Account Type Chart"
 dLang['en']['ACCOUNT_TYPE_TEMPLATE_NAME']="UK Account Type Chart"
-dLang['nl']['TAX_GROUP_SALES_NAME']="B.T.W. Verkoop"
-dLang['en']['TAX_GROUP_SALES_NAME']="V.A.T. on Sales"
-dLang['nl']['TAX_GROUP_PURCHASES_NAME']="B.T.W. Inkoop"
-dLang['en']['TAX_GROUP_PURCHASES_NAME']="V.A.T. on Purchases"
-dLang['nl']['TAX_RULE_1_NAME']="Levering binnenland"
-dLang['en']['TAX_RULE_1_NAME']="Delivery Inland"
-dLang['nl']['TAX_RULE_2_NAME']="Verleggingsregelingen binnenland"
-## FixMe: nonsense in English
-dLang['en']['TAX_RULE_2_NAME']="Diversion Schemes inland"
-dLang['nl']['TAX_RULE_3_NAME']="Prestaties naar of in het buitenland"
-dLang['en']['TAX_RULE_3_NAME']="Sales to abroad"
-dLang['nl']['TAX_RULE_4_NAME']="Levering vanuit buitenland"
-dLang['en']['TAX_RULE_4_NAME']="Purchases from abroad"
+
+dLang['nl']['TAX_CODE_TEMPLATE_ID']="tax_code_nl"
+dLang['en']['TAX_CODE_TEMPLATE_ID']="tax_code_uk"
 
 CURRENT_LANG='en'
 def _(sString): return dLang[CURRENT_LANG][sString]
 
 # the original input, used by --test doctest only
 INFILE='charts/account_chart_netherlands.xml'
+
+# From from trytond_account-3.2.1/account.py:
+lTrytonAllowedKinds=['other',
+		  'payable',
+		  'revenue',
+		  'receivable',
+		  'expense',
+		  'stock',
+		  'view',
+		  ]
 
 class Converter(object):
     """
@@ -153,17 +143,18 @@ class Converter(object):
         # account.account.template
         dAccountAccountTemplate=dict(oConfig.items('account.account.template'))
         dChartConfig=dict(oConfig.items('chart'))
-        assert 'a_root_id' in dChartConfig, "a_root_id not in dChartConfig %r" \
-            % (dChartConfig.keys(),)
+        for s in ['a_root_id', 'root_account_template_name']:
+            assert s in dChartConfig, "%s not in dChartConfig %r" \
+                % (s, dChartConfig.keys(),)
         
         m = self.maker
         r = []
         r.append(
             m.record(
-                m.field(_('ROOT_ACCOUNT_TEMPLATE_NAME'), name="name"),
+                m.field(dChartConfig['root_account_template_name'], name="name"),
                 m.field("view", name="kind"),
-                m.field(name="type", ref=_('ACCOUNT_TYPE_TEMPLATE_TYPE')),
-                id=_('ROOT_ACCOUNT_TEMPLATE_ID'), 
+                m.field(name="type", ref=dChartConfig['root_account_template_type`']),
+                id=dChartConfig['root_account_template_id'], 
                 model="account.account.template",
             )
         )
@@ -186,17 +177,19 @@ class Converter(object):
                 ref = typ[0].get("ref")
                 f.append(m.field(name='type',ref=ref))
 
-            # FixMe: these are only conventional in Oerp
-            ## some charts use account_type_income account_type_expense
+            # FixMe: these names are only conventional in Oerp; some charts
+            ## use account_type_income instead of user_type_income 
             if ref == dAccountAccountTemplate['account_type_income']:
                 kind = 'revenue'
             elif ref == dAccountAccountTemplate['account_type_expense']:
                 kind = 'expense'
-            ## what about 'user_type_asset' or ref == 'account_type_asset'
-
-            ## liquidity kind does not exist - use other?
-            ## if kind == 'liquidity': kind = 'other'
+            ##? what about Trytons other kinds?
             
+            ##? liquidity kind does not exist in Tryton - use other?
+            if kind == 'liquidity': kind = 'other'
+
+            assert kind in lTrytonAllowedKinds, \
+                "%s not in lTrytonAllowedKinds %r" % (kind, lTrytonAllowedKinds,)
             f.append(m.field(kind, name='kind'))
 
             if reconcile:
@@ -206,13 +199,14 @@ class Converter(object):
             if parent:
                 parent = parent[0].get("ref")
                 if parent == dChartConfig['a_root_id']:
-                    parent = _('ROOT_ACCOUNT_TEMPLATE_ID')
+                    parent = dChartConfig['root_account_template_id']
                 f.append(m.field(name='parent', ref=parent))
             f = tuple(f)
             r.append(m.record(*f, model='account.account.template', id=id))
         return r
 
     def build_tax_code_template(self):
+        dChartConfig=dict(oConfig.items('chart'))
         l = self.intree.xpath("/openerp/data/record[@model='account.tax.code.template']")
         m = self.maker
         r = []
@@ -231,7 +225,7 @@ class Converter(object):
                     r.append(
                         m.record(
                             m.field(name, name='name'),
-                            m.field(name='account', ref=_('ROOT_ACCOUNT_TEMPLATE_ID')),
+                            m.field(name='account', ref=dChartConfig['root_account_template_id']),
                             model="account.tax.code.template",
                             id=_('TAX_CODE_TEMPLATE_ID')
                         )
@@ -239,7 +233,7 @@ class Converter(object):
                     continue
 
             f.append(m.field(name, name='name'))
-            f.append(m.field(name='account', ref=_('ROOT_ACCOUNT_TEMPLATE_ID')))
+            f.append(m.field(name='account', ref=dChartConfig['root_account_template_id']))
 
             parent = parent[0].get("ref")
             if parent == origroot:
@@ -256,27 +250,36 @@ class Converter(object):
         return r
 
     def build_tax_group(self):
+        ##
+        """Tax groups have no analogue in OpenErp"""
+        model="account.tax.group"
+        if not oConfig.has_section(model): return []
+        
+        dTaxGroup=dict(oConfig.items(model))
+        sFile=dTaxGroup['xmlfile']
+        assert os.path.exists(sFile), "File not found: "+sFile
+        oSubTree=ET.parse(sFile)
+        
+        l = oSubTree.xpath("/tryton/data/record[@model='%s']" % model)
         m = self.maker
         r = []
-        r.append(
-            m.record(
-                m.field(_('TAX_GROUP_SALES_NAME'), name="name"),
-                m.field(_('TAX_GROUP_SALES_NAME'), name="code"),
-                model="account.tax.group",
-                id="tax_group_sale",
+        for e in l:
+            f = []
+            id = e.get("id")
+            name = e.xpath("field[@name='name']")[0].text
+            f.append(m.field(name, name='name'))
+            for sElt in ['code']:
+                sText = e.xpath("field[@name='"+sElt+"']")[0].text
+                f.append(m.field(sText, name=sElt))
+            f = tuple(f)
+            r.append(
+                m.record(*f, id=id, model=model)
             )
-        )
-        r.append(
-            m.record(
-                m.field(_('TAX_GROUP_PURCHASES_NAME'), name="name"),
-                m.field(_('TAX_GROUP_PURCHASES_NAME'), name="code"),
-                model="account.tax.group",
-                id="tax_group_purchase",
-            )
-        )
-        return r
 
+        return r
+    
     def build_tax_template(self):
+        dChartConfig=dict(oConfig.items('chart'))
         model="account.tax.template"
         l = self.intree.xpath("/openerp/data/record[@model='%s']" % model)
         m = self.maker
@@ -367,7 +370,7 @@ class Converter(object):
             tax_type           = e.xpath("field[@name='type_tax_use']")[0].text
             f.append(m.field(name='group', ref='tax_group_%s' % tax_type))
 
-            f.append(m.field(name='account', ref=_('ROOT_ACCOUNT_TEMPLATE_ID')))
+            f.append(m.field(name='account', ref=dChartConfig['root_account_template_id']))
 
             f = tuple(f)
             r.append(
@@ -377,102 +380,60 @@ class Converter(object):
         return r
 
     def build_tax_rule_template(self):
+        ## these should be in the chart, not the converter
+        ## but at least now they are broken out to XML xmlfile files
         model="account.tax.rule.template"
+        if not oConfig.has_section(model): return []
+        
+        dTaxRuleLineTemplate=dict(oConfig.items(model))
+        sFile=dTaxRuleLineTemplate['xmlfile']
+        assert os.path.exists(sFile), "File not found: "+sFile
+        oSubTree=ET.parse(sFile)
+        
+        l = oSubTree.xpath("/tryton/data/record[@model='%s']" % model)
         m = self.maker
-        ## FixMe: these should be in the chart, not the converter
-        return [
-            m.record(
-                m.field(_('TAX_RULE_1_NAME'), name="name"),
-                m.field(ref=_('ROOT_ACCOUNT_TEMPLATE_ID'), name="account"),
-                model=model, 
-                id="tax_rule_1",
-            ),
-            m.record(
-                m.field(_('TAX_RULE_2_NAME'), name="name"),
-                m.field(ref=_('ROOT_ACCOUNT_TEMPLATE_ID'), name="account"),
-                model=model,
-                id="tax_rule_2",
-            ),
-            m.record(
-                m.field(_('TAX_RULE_3_NAME'), name="name"),
-                m.field(ref=_('ROOT_ACCOUNT_TEMPLATE_ID'), name="account"),
-                model=model,
-                id="tax_rule_3",
-            ),
-            m.record(
-                m.field(_('TAX_RULE_4_NAME'), name="name"),
-                m.field(ref=_('ROOT_ACCOUNT_TEMPLATE_ID'), name="account"),
-                model=model,
-                id="tax_rule_4",
-            ),
-        ]
+        r = []
+        for e in l:
+            f = []
+            id = e.get("id")
+            name = e.xpath("field[@name='name']")[0].text
+            f.append(m.field(name, name='name'))
+            for sElt in ['account']:
+                sRef = e.xpath("field[@name='"+sElt+"']")[0].get('ref')
+                f.append(m.field(name=sElt, ref=sRef))
+            f = tuple(f)
+            r.append(
+                m.record(*f, id=id, model=model)
+            )
+
+        return r
 
     def build_tax_rule_line_template(self):
+        ## these should be in the chart, not the converter
+        ## but at least now they are broken out to XML xmlfile files
         model="account.tax.rule.line.template"
+        if not oConfig.has_section(model): return []
+        
+        dTaxRuleLineTemplate=dict(oConfig.items(model))
+        sFile=dTaxRuleLineTemplate['xmlfile']
+        assert os.path.exists(sFile), "File not found: "+sFile
+        oSubTree=ET.parse(sFile)
+        
+        l = oSubTree.xpath("/tryton/data/record[@model='%s']" % model)
         m = self.maker
-        ## FixMe: these should be in the chart, not the converter
-        lRetval = [
-            ## 1. verkoop binnenland
-            m.record(
-                m.field(name="rule",ref="tax_rule_1"),
-                m.field(name="group",ref="tax_group_sale"),
-                m.field(name="tax",ref="btw_0"),
-                model=model, id="tax_rule_line_1_0"
-            ),
-            m.record(
-                m.field(name="rule",ref="tax_rule_1"),
-                m.field(name="group",ref="tax_group_sale"),
-                m.field(name="tax",ref="btw_6"),
-                model=model, id="tax_rule_line_1_6",
-            ),
-            m.record(
-                m.field(name="rule",ref="tax_rule_1"),
-                m.field(name="group",ref="tax_group_sale"),
-                m.field(name="tax",ref="btw_19"),
-                model=model, id="tax_rule_line_1_19"
-            ),
+        r = []
+        for e in l:
+            f = []
+            id = e.get("id")
+            for sElt in ['rule','group','tax']:
+                sRef = e.xpath("field[@name='"+sElt+"']")[0].get('ref')
+                f.append(m.field(name=sElt, ref=sRef))
+            f = tuple(f)
+            r.append(
+                m.record(*f, id=id, model=model)
+            )
 
-            ## 3. export
-            m.record(
-                m.field(name="rule", ref="tax_rule_3"),
-                m.field(name="group", ref="tax_group_sale"),
-                m.field(name="tax", ref="btw_X0"),
-                model=model, id="tax_rule_line_3_0",
-            ),
-            m.record(
-                m.field(name="rule", ref="tax_rule_3"),
-                m.field(name="group", ref="tax_group_sale"),
-                m.field(name="tax", ref="btw_X1"),
-                model=model, id="tax_rule_line_3_1",
-            ),
-            m.record(
-                m.field(name="rule", ref="tax_rule_3"),
-                m.field(name="group", ref="tax_group_sale"),
-                m.field(name="tax", ref="btw_X2"),
-                model=model, id="tax_rule_line_3_2",
-            ),
-
-            ## 4. import
-            m.record(
-                m.field(name="rule",ref="tax_rule_4"),
-                m.field(name="group",ref="tax_group_purchase"),
-                m.field(name="tax",ref="btw_E1_1"),
-                model=model, id="tax_rule_line_4_1"
-            ),
-            m.record(
-                m.field(name="rule",ref="tax_rule_4"),
-                m.field(name="group",ref="tax_group_purchase"),
-                m.field(name="tax", ref="btw_E2_1"),
-                model=model, id="tax_rule_line_4_2"
-            ),
-            m.record(
-                m.field(name="rule",ref="tax_rule_4"),
-                m.field(name="group",ref="tax_group_purchase"),
-                m.field(name="tax",ref="btw_E_overig_1"),
-                model=model, id="tax_rule_line_4_overig"
-            ),
-        ]
-        return lRetval
+        return r
 
     def write(self, outfile=None):
         if not outfile:
@@ -500,10 +461,12 @@ def main(lArgs):
         ## FixMe: does doctest.testmod return an integer?
         return doctest.testmod(optionflags=doctest.ELLIPSIS)
     
-    assert len(lArguments) == 1, __doc__
-    sInfile=lArguments[0]
-    assert os.path.exists(sInfile), "File not found: "+sInfile
-
+    if len(lArguments) == 1 and lArguments[0] != '-':
+        sInfile=lArguments[0]
+        assert os.path.exists(sInfile), "File not found: "+sInfile
+    else:
+        sInfile=sys.stdin
+        
     ## FixMe: later on, maybe parse the chart for this info
     ## but for now, use a config file to specify the info.
     ## Im not convinced that all the info is there, or easy to find.

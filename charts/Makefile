@@ -11,8 +11,6 @@
 
 # If you have Oerp 7.0 installed, set the following path to the addons
 OERP_7_ADDONS="/n/src/openerp-7.0-20140125-002455/openerp/addons"
-# If you have Oerp 6.0.4 installed, set the following path to the addons
-OERP_6_ADDONS="/n/src/openerp-server-6.0.4/bin/addons"
 
 test:: test-nl test-uk
 
@@ -32,7 +30,7 @@ test-nl-new::
 	  account_chart_netherlands.xml && \
 	diff account_nl-orig.xml account_nl-new.xml
 
-test-uk:: test-uk-6 test-uk-7
+test-uk:: test-uk-7
 
 OERP7_L10N_UK_DATA=${OERP_7_ADDONS}/"l10n_uk/data"
 test-uk-7::
@@ -48,36 +46,12 @@ accounting_chart_uk_oerp7.xml::  oerp7_chart_l10n_uk.xml
 	python ../converter.py --lang=en \
 	  $< > accounting_chart_uk_oerp7.xml
 
-OERP6_L10N_UK=${OERP_6_ADDONS}/"l10n_uk"
-test-uk-6::
-# only do this test if the directory exists
-	[ ! -d ${OERP6_L10N_UK} ] || \
-		$(MAKE) $(MFLAGS) accounting_chart_uk_oerp6.xml
-
-# 29 account chart by seathsolutions.com
-oerp6_chart_l10n_uk.xml::
-	echo '<?xml version="1.0" encoding="utf-8"?>' > $@
-	echo '<openerp>' >> $@
-	echo '    <data noupdate="True">' >> $@
-	cat ${OERP6_L10N_UK}/l10n_uk_types.xml \
-	    ${OERP6_L10N_UK}/l10n_uk_chart.xml \
-	    ${OERP6_L10N_UK}/l10n_uk_tax.xml | \
-		sed -e '/<\/*openerp/d' \
-		    -e '/<\/*data/d' \
-		    -e '/<\?xml/d' >> $@
-	echo '    </data>' >> $@
-	echo '</openerp>'>> $@
-
-accounting_chart_uk_oerp6.xml::  oerp6_chart_l10n_uk.xml
-	python ../converter.py --lang=en \
-	    -c oerp6_chart_l10n_uk.cfg \
-	  $< > accounting_chart_uk_oerp6.xml
 
 clean::
 	find . -type f -name \*~ -exec rm -f '{}' \;
 
 veryclean:: clean
 	rm -f account_nl-new.xml account_nl.xml
-	rm -f accounting_chart_uk_oerp7.xml accounting_chart_uk_oerp6.xml
+	rm -f accounting_chart_uk_oerp7.xml
 # leave the intermediaries for now for people who dont have them
-#	rm -f oerp7_chart_l10n_uk.xml oerp6_chart_l10n_uk.xml 
+#	rm -f oerp7_chart_l10n_uk.xml

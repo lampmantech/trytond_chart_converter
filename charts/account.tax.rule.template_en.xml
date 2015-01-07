@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tryton>
+  <data>
+    <record model="account.tax.rule.template" id="tax_rule_1">
+      <field name="name">Delivery Inland</field>
+      <field ref="root_uk" name="account"/>
+    </record>
+    <record model="account.tax.rule.template" id="tax_rule_2">
+      <!-- FixMe: nonsense in English  -->
+      <field name="name">Diversion Schemes inland</field>
+      <field ref="root_uk" name="account"/>
+    </record>
+    <record model="account.tax.rule.template" id="tax_rule_3">
+      <field name="name">Sales to abroad</field>
+      <field ref="root_uk" name="account"/>
+    </record>
+    <record model="account.tax.rule.template" id="tax_rule_4">
+      <field name="name">Purchases from abroad</field>
+      <field ref="root_uk" name="account"/>
+    </record>
+  </data>
+</tryton>
