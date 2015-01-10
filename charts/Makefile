@@ -6,7 +6,7 @@
 # If you have Oerp 7 installed, set the path to the addons and run
 # make test-uk
 # This will run the converter on the $OERP_7_ADDONS/l10n_uk/data directory
-# to generate a Tryton CofAs into accounting_chart_uk_oerp7.xml
+# to generate a Tryton CofAs into accounting_chart_uk_oerp7-CoAs.xml
 # This chart will be tested and later packaged into a trytond module.
 
 # If you have Oerp 7.0 installed, set the following path to the addons
@@ -36,22 +36,24 @@ OERP7_L10N_UK_DATA=${OERP_7_ADDONS}/"l10n_uk/data"
 test-uk-7::
 # only do this test if the directory exists
 	[ ! -d ${OERP7_L10N_UK_DATA} ] || \
-		$(MAKE) $(MFLAGS) accounting_chart_uk_oerp7.xml
+		$(MAKE) $(MFLAGS) accounting_chart_uk_oerp7_CoAs.xml
 
 # 990 accounts chart by smartmode.co.uk
 oerp7_chart_l10n_uk.xml::
 	${SHELL} openerp7-l10n_uk-csv-to-xml.sh ${OERP7_L10N_UK_DATA} > $@
 
-accounting_chart_uk_oerp7.xml::  oerp7_chart_l10n_uk.xml
+accounting_chart_uk_oerp7_CoAs.xml::  oerp7_chart_l10n_uk.xml
 	python ../converter.py --lang=en \
-	  $< > accounting_chart_uk_oerp7.xml
-
+	  -x accounting_chart_uk_oerp7_CoTs.xml \
+	  -o accounting_chart_uk_oerp7_CoAs.xml \
+	  $<
 
 clean::
 	find . -type f -name \*~ -exec rm -f '{}' \;
 
 veryclean:: clean
 	rm -f account_nl-new.xml account_nl.xml
-	rm -f accounting_chart_uk_oerp7.xml
+	rm -f accounting_chart_uk_oerp7_CoAs.xml \
+		accounting_chart_uk_oerp7_CoTs.xml
 # leave the intermediaries for now for people who dont have them
 #	rm -f oerp7_chart_l10n_uk.xml

@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+In OERP7, this can also be 'all'
+openerp-7.0-20140125-002455/openerp/addons/account/account.py
+'type_tax_use': fields.selection([('sale','Sale'),('purchase','Purchase'),('all','All')], 'Tax Application', required=True)
+-->
 <tryton>
   <data>
     <record model="account.tax.group" id="tax_group_sale">

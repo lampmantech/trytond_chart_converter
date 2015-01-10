@@ -1,3 +1,19 @@
+commit 0456fb03fe3059482fa94af57e896e85eee9370e
+Date:   Wed Jan 7 08:48:12 2015 +0200
+
+    Factored out the tryton xml that was being created by the converter.
+    There are 3 snippets, all tax related. The are now controlled
+    by the config file.
+    
+    account.tax.group.xml will probably be the same for all charts
+    (when translated).
+    account.tax.rule.template_en.xml will probably be the same for
+    all charts in a country, although the ones included are both "wrong"
+    as they should have sale/purchase cross local/EU/non-EU;
+    6 lines not 4.
+    account.tax.rule.line.template.xml I don't understand, and
+    need help on to do a UK version.
+
 commit 0a93fc3ac1af8165d8308ceb42e7af6096e0f241
 Date:   Fri Jan 2 05:16:15 2015 +0200
 

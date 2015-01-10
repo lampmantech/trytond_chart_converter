@@ -8,7 +8,7 @@ http://github.com/pjstevns/trytond_account_nl/
 
 **THIS IS A WORK IN PROGRESS, UNRELEASED FOR NOW!**
 
-HomePage: 
+HomePage: http://github.com/lampmantech/trytond_chart_converter/
 
 Ideally, the converter could be internationalized the way Tryton
 modules are, but to start with, there is a simple `--lang`
@@ -25,18 +25,34 @@ OpenERP->Tryton migrations where people have customized CoAs.
 ( If you haven't already seen this, it will make you smile:
 https://www.openlabs.co.in/article/erp-trade-in-offer )
 
+If you don't provide an --outfile option, then output is to stdout.
+If you provide an --outfile option, but don't provide a --taxfile
+option, then all output is to the outfile.  If you provide an --outfile
+option and a --taxfile option, then the account info is output is to the
+outfile, and the chart of taxes is output to the taxfile.
+
+Splitting the two is generally a good idea, because the account chart
+varies with the type of the company's business, but the tax chart is
+the same for all companies within a country, state or province.
+
 The original converter is the file `converter-orig.py`
 (current from github as of 2014-12) and
 the original input: `charts/account_chart_netherlands.xml`
 and the original output: `account_nl-orig.xml`
 
+Installation
+------------
+
 There is no setup.py or installation, just the single script:
 ```
     python converter.py --help
-```    
+```
 
 Every input chart can have a config file to parameterize the
 conversion process. See `en.cfg` and `nl.cfg` for examples.
+
+Tests
+-----
 
 There are some simple tests to ensure that the output of
 this converter matches the output of the original converter:

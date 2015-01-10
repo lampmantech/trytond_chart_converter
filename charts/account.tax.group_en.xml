@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+In OERP7, this can also be 'all'
+openerp-7.0-20140125-002455/openerp/addons/account/account.py
+'type_tax_use': fields.selection([('sale','Sale'),('purchase','Purchase'),('all','All')], 'Tax Application', required=True)
+
+We include it here for completeness, but we are not really sure
+if it is used, how it is used, or even what it means!
+-->
 <tryton>
   <data>
     <record model="account.tax.group" id="tax_group_sale">
@@ -8,6 +16,10 @@
     <record model="account.tax.group" id="tax_group_purchase">
       <field name="name">VAT on Purchases</field>
       <field name="code">VAT on Purchases</field>
+    </record>
+    <record model="account.tax.group" id="tax_group_all">
+      <field name="name">VAT on Sales and Purchases</field>
+      <field name="code">VAT on Sales and Purchases</field>
     </record>
   </data>
 </tryton>
