@@ -1,3 +1,17 @@
+commit c1a146cda947f69fcaa1b833199c4f8536d1b894
+Date:   Sat Jan 10 22:44:00 2015 +0200
+
+    Added a --taxfile option to split the CoTs from the CoAds.
+    If you don't provide an --outfile option, then output is to stdout.
+    If you provide an --outfile option, but don't provide a --taxfile
+    option, then all output is to the outfile.  If you provide an --outfile
+    option and a --taxfile option, then the account info is output is to the
+    outfile, and the chart of taxes is output to the taxfile.
+    
+    Splitting the two is generally a good idea, because the account chart
+    varies with the type of the company's business, but the tax chart is
+    the same for all companies within a country, state or province.
+
 commit 0456fb03fe3059482fa94af57e896e85eee9370e
 Date:   Wed Jan 7 08:48:12 2015 +0200
 

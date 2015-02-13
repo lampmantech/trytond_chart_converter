@@ -87,19 +87,6 @@ lTrytonAllowedKinds=['other',
 
 class Converter(object):
     """
-    >>> c = Converter(INFILE)
-    >>> c.intree
-    <lxml.etree._ElementTree object at ...>
-
-    >>> t = c.maker
-    >>> x = t.tryton(t.data(t.record(model="account.account.type.template",id="uk")))
-    >>> print c.render(x)
-    <tryton>
-      <data>
-        <record model="account.account.type.template" id="uk"/>
-      </data>
-    </tryton>
-    <BLANKLINE>
     """
 
     def __init__(self, infile, oConfig=None, oValues=None):
@@ -111,8 +98,8 @@ class Converter(object):
         tree = []
         tree += self.build_account_type_template()
         tree += self.build_account_template()
-        tree += self.build_tax_code_template()
         lTaxTree = []
+        lTaxTree += self.build_tax_code_template()
         lTaxTree += self.build_tax_group()
         lTaxTree += self.build_tax_template()
         lTaxTree += self.build_tax_rule_template()
@@ -165,12 +152,15 @@ class Converter(object):
 
     def build_account_template(self):
         # account.account.template
-        dAccountAccountTemplate=dict(oConfig.items('account.account.template'))
-        dChartConfig=dict(oConfig.items('chart'))
+        assert 'account.account.template' in self.oConfig.sections()
+        dChartConfig=dict(self.oConfig.items('chart'))
         for s in ['a_root_id', 'root_account_template_name']:
             assert s in dChartConfig, "%s not in dChartConfig %r" \
                 % (s, dChartConfig.keys(),)
-
+        dAccountAccountTemplate=dict(self.oConfig.items('account.account.template'))
+        for s in ['account_type_income', 'account_type_expense']:
+            assert s in dAccountAccountTemplate, "%s not in dAccountAccountTemplate %r" \
+                % (s, dAccountAccountTemplate.keys(),)
         m = self.maker
         r = []
         r.append(
@@ -178,6 +168,7 @@ class Converter(object):
                 m.field(dChartConfig['root_account_template_name'], name="name"),
                 m.field("view", name="kind"),
                 m.field(name="type", ref=dChartConfig['root_account_template_type']),
+                m.field(dChartConfig['root_account_template_id'], name="code"),
                 id=dChartConfig['root_account_template_id'],
                 model="account.account.template",
             )
@@ -190,27 +181,41 @@ class Converter(object):
             name = e.xpath("field[@name='name']")[0].text
             code = e.xpath("field[@name='code']")[0].text
             kind = e.xpath("field[@name='type']")[0].text
-            typ = e.xpath("field[@name='user_type']")
+            user_type = e.xpath("field[@name='user_type']")
             reconcile = e.xpath("field[@name='reconcile']")
             parent = e.xpath("field[@name='parent_id']")
+                
             f = []
             f.append(m.field(name, name='name'))
             f.append(m.field(code, name='code'))
             ref = None
-            if typ:
-                ref = typ[0].get("ref")
+            if user_type:
+                ref = user_type[0].get("ref")
                 f.append(m.field(name='type',ref=ref))
 
-            # FixMe: these names are only conventional in Oerp; some charts
-            ## use account_type_income instead of user_type_income
+            # These names are only conventional in Oerp
             if ref == dAccountAccountTemplate['account_type_income']:
                 kind = 'revenue'
             elif ref == dAccountAccountTemplate['account_type_expense']:
+                #? what about COGS - is it kind=other and type=expense?
+                #?if kind != 'other':
                 kind = 'expense'
-            ##? what about Trytons other kinds?
+            elif ref == "account_type_output_tax":
+                #? liability
+                kind = "other"
+                #? "Unreconciled" why not balance?
+            elif ref == "account_type_input_tax":
+                #? asset
+                kind = "other"
+                #? "Unreconciled" why not balance?
 
             ##? liquidity kind does not exist in Tryton - use other?
             if kind == 'liquidity': kind = 'other'
+
+            ##? stock kind does not exist in Oerp - use other?
+            if kind != 'view' and name.lower().startswith('stock'):
+                # FixMe: this is gross
+                kind = 'stock'
 
             assert kind in lTrytonAllowedKinds, \
                 "%s not in lTrytonAllowedKinds %r" % (kind, lTrytonAllowedKinds,)
@@ -224,13 +229,21 @@ class Converter(object):
                 parent = parent[0].get("ref")
                 if parent == dChartConfig['a_root_id']:
                     parent = dChartConfig['root_account_template_id']
-                f.append(m.field(name='parent', ref=parent))
+            else:
+                # should only be one of these
+                parent=dChartConfig['root_account_template_id']
+            f.append(m.field(name='parent', ref=parent))
+            
             f = tuple(f)
             r.append(m.record(*f, model='account.account.template', id=id))
         return r
 
     def build_tax_code_template(self):
-        dChartConfig=dict(oConfig.items('chart'))
+        dChartConfig=dict(self.oConfig.items('chart'))
+        for s in ['root_account_template_id']:
+            assert s in dChartConfig, "%s not in dChartConfig %r" \
+                % (s, dChartConfig.keys(),)
+
         l = self.intree.xpath("/openerp/data/record[@model='account.tax.code.template']")
         m = self.maker
         r = []
@@ -241,7 +254,9 @@ class Converter(object):
             name = e.xpath("field[@name='name']")[0].text
             code = e.xpath("field[@name='code']")
             parent = e.xpath("field[@name='parent_id']")
-            if not parent: continue
+            if not parent:
+                #? why - not append?
+                continue
             assert name, "Null name in account.tax.code.template for id="+id+' '+repr(e.text)
             if parent[0].get("eval"):
                 if not eval(parent[0].get("eval")):
@@ -257,7 +272,8 @@ class Converter(object):
                     continue
 
             f.append(m.field(name, name='name'))
-            f.append(m.field(name='account', ref=dChartConfig['root_account_template_id']))
+            f.append(m.field(name='account',
+                             ref=dChartConfig['root_account_template_id']))
 
             parent = parent[0].get("ref")
             if parent == origroot:
@@ -267,29 +283,26 @@ class Converter(object):
             if code:
                 code = code[0].text
                 f.append(m.field(code, name='code'))
-
+            #? "notprintable","sign"
             f = tuple(f)
             r.append(m.record(*f, model='account.tax.code.template', id=id))
 
         return r
 
     def build_tax_group(self):
-        ##
-        """Tax groups have no analogue in OpenErp"""
         model="account.tax.group"
-        if not oConfig.has_section(model): return []
+        if not self.oConfig.has_section(model): return []
 
-        dTaxGroup=dict(oConfig.items(model))
+        dTaxGroup=dict(self.oConfig.items(model))
         sFile=dTaxGroup['xmlfile']
-        # FixMe: do nothing for now
-        if not os.path.exists(sFile):
-            sFile = os.path.join(os.path.dirname(oConfig.sConfigFile),
-                                 sFile)
-        if not os.path.exists(sFile): return []
+        print sFile
         assert os.path.exists(sFile), "File not found: "+sFile
         oSubTree=ET.parse(sFile)
 
         l = oSubTree.xpath("/tryton/data/record[@model='%s']" % model)
+        # ??
+        return l
+    
         m = self.maker
         r = []
         for e in l:
@@ -308,7 +321,7 @@ class Converter(object):
         return r
 
     def build_tax_template(self):
-        dChartConfig=dict(oConfig.items('chart'))
+        dChartConfig=dict(self.oConfig.items('chart'))
         model="account.tax.template"
         l = self.intree.xpath("/openerp/data/record[@model='%s']" % model)
         m = self.maker
@@ -329,8 +342,10 @@ class Converter(object):
                 if account_collected:
                     account_collected = account_collected[0].get("ref")
                     f.append(
-                        m.field(
-                            name='invoice_account',ref=account_collected
+                        m.field(search="[('code', '=', '%s')]" % \
+                                (account_collected,),
+                                model='account.account.template',
+                                name='invoice_account',
                         )
                     )
 
@@ -339,8 +354,10 @@ class Converter(object):
                     account_paid = account_paid[0].get("ref")
                     f.append(
                         m.field(
+                            search="[('code', '=', '%s')]" % \
+                                                 (account_paid,),
+                            model='account.account.template',
                             name='credit_note_account',
-                            ref=account_paid
                         )
                     )
 
@@ -352,22 +369,35 @@ class Converter(object):
                             g = amount[0].get("eval")
                         else:
                             g = amount[0].text
-                        amount = int(float(g) * 100)
+                        amount = float(g)
                         f.append(
                             m.field(
-                                name='percentage',
-                                eval="Decimal('%d')" % amount,
+                                name='rate',
+                                eval="Decimal('%2.2f')" % amount,
                             )
                         )
                         f.append(m.field('percentage', name='type'))
 
+                    base_code = e.xpath("field[@name='base_code_id']")
+                    if base_code:
+                        base_code = base_code[0].get("ref")
+                        f.append(m.field(search="[('code', '=', '%s')]" % \
+                                                 (base_code,),
+                                         model='account.tax.code.template',
+                                         name='invoice_base_code',
+                                     )
+                        )
                     tax_code           = e.xpath("field[@name='tax_code_id']")
                     if tax_code:
                         tax_code = tax_code[0].get("ref")
-                        f.append(m.field(name='invoice_base_code', ref=tax_code))
-                        f.append(m.field(name='invoice_tax_code', ref=tax_code))
+                        f.append(m.field(search="[('code', '=', '%s')]" % \
+                                                 (tax_code,),
+                                         model='account.tax.code.template',
+                                         name='invoice_tax_code',
+                                     )
+                        )
 
-                    tax_sign           = e.xpath("field[@name='tax_sign']")
+                    tax_sign = e.xpath("field[@name='tax_sign']")
                     if tax_sign:
                         tax_sign = tax_sign[0].get("eval")
                         f.append(m.field(name='invoice_tax_sign', eval=tax_sign))
@@ -377,13 +407,26 @@ class Converter(object):
                         base_sign = base_sign[0].get("eval")
                         f.append(m.field(name='invoice_base_sign', eval=base_sign))
 
+                    ref_base_code = e.xpath("field[@name='ref_base_code_id']")
+                    if base_code:
+                        ref_base_code = ref_base_code[0].get("ref")
+                        f.append(m.field(search="[('code', '=', '%s')]" % \
+                                                 (ref_base_code,),
+                                         model='account.tax.code.template',
+                                         name='credit_note_base_code',
+                                     )
+                        )
                     ref_tax_code       = e.xpath("field[@name='ref_tax_code_id']")
                     if ref_tax_code:
                         ref_tax_code = ref_tax_code[0].get("ref")
-                        f.append(m.field(name='credit_note_base_code', ref=ref_tax_code))
-                        f.append(m.field(name='credit_note_tax_code', ref=ref_tax_code))
+                        f.append(m.field(search="[('code', '=', '%s')]" % \
+                                                 (ref_tax_code,),
+                                         model='account.tax.code.template',
+                                         name='credit_note_tax_code',
+                                     )
+                        )
 
-                    ref_base_sign      = e.xpath("field[@name='ref_base_sign']")
+                    ref_base_sign = e.xpath("field[@name='ref_base_sign']")
                     if ref_base_sign:
                         ref_base_sign = ref_base_sign[0].get("eval")
                         f.append(m.field(name='credit_note_base_sign', eval=ref_base_sign))
@@ -408,6 +451,13 @@ class Converter(object):
                 f.append(m.field(name='group', ref='tax_group_%s' % tax_type))
 
                 f.append(m.field(name='account', ref=dChartConfig['root_account_template_id']))
+                # VAT rates change with time, and OERP dont;
+                # fill the field in as the beginning of computer time
+                # to  signal it can ce changed, and then let others correct it
+                f.append(m.field('1971-01-01', name='start_date'))
+                # FixMe: a better way is to make changable taxes
+                # children of a tax.template of kind-none
+                # see tax_fr.xml
             except Exception, e:
                 (type, value, traceback,) = sys.exc_info()
                 value = "ID=%s " % (id,) + str(value)
@@ -423,18 +473,20 @@ class Converter(object):
         ## these should be in the chart, not the converter
         ## but at least now they are broken out to XML xmlfile files
         model="account.tax.rule.template"
-        if not oConfig.has_section(model): return []
+        if not self.oConfig.has_section(model): return []
 
-        dTaxRuleLineTemplate=dict(oConfig.items(model))
+        dTaxRuleLineTemplate=dict(self.oConfig.items(model))
         sFile=dTaxRuleLineTemplate['xmlfile']
         if not os.path.exists(sFile):
-            sFile = os.path.join(os.path.dirname(oConfig.sConfigFile),
+            sFile = os.path.join(os.path.dirname(self.oConfig.sConfigFile),
                                  sFile)
         if not os.path.exists(sFile): return []
         assert os.path.exists(sFile), "File not found: "+sFile
         oSubTree=ET.parse(sFile)
 
         l = oSubTree.xpath("/tryton/data/record[@model='%s']" % model)
+        #??
+        return l
         m = self.maker
         r = []
         for e in l:
@@ -456,18 +508,20 @@ class Converter(object):
         ## these should be in the chart, not the converter
         ## but at least now they are broken out to XML xmlfile files
         model="account.tax.rule.line.template"
-        if not oConfig.has_section(model): return []
+        if not self.oConfig.has_section(model): return []
 
-        dTaxRuleLineTemplate=dict(oConfig.items(model))
+        dTaxRuleLineTemplate=dict(self.oConfig.items(model))
         sFile=dTaxRuleLineTemplate['xmlfile']
         if not os.path.exists(sFile):
-            sFile = os.path.join(os.path.dirname(oConfig.sConfigFile),
+            sFile = os.path.join(os.path.dirname(self.oConfig.sConfigFile),
                                  sFile)
         if not os.path.exists(sFile): return []
         assert os.path.exists(sFile), "File not found: "+sFile
         oSubTree=ET.parse(sFile)
 
         l = oSubTree.xpath("/tryton/data/record[@model='%s']" % model)
+        #??
+        return l
         m = self.maker
         r = []
         for e in l:
@@ -486,35 +540,35 @@ class Converter(object):
     def write(self):
         outfile = self.oValues.sOutfile
         taxfile = self.oValues.sTaxfile
-        if not outfile:
-            outfile = sys.stdout
-            o = self.render(self.outtree)
+        if not outfile or outfile == '-':
+            u = self.render(self.outtree)
+            assert u
+            sys.stdout.write(u)
             return
 
         if taxfile:
-            try:
-                oFd = open(taxfile, 'w')
-                o = self.render(self.taxtree)
-                assert o
-                oFd.write(o)
-            finally:
-                if oFd: oFd.close()
+            u = self.render(self.taxtree)
+            assert u
+            with open(taxfile, 'wt') as oFd:
+                oFd.write(u)
             # drop through
 
-        try:
-            oFd = open(outfile, 'w')
-            o = self.render(self.outtree)
-            assert o
-            oFd.write(o)
-        finally:
-            if oFd: oFd.close()
+        u = self.render(self.outtree)
+        assert u
+        with open(outfile, 'wt') as oFd:
+            oFd.write(u)
 
     def render(self, e):
-        return ET.tostring(e, encoding='UTF-8', pretty_print=True)
-
-oConfig=None
+        uRetval = ET.tostring(e, encoding='UTF-8', pretty_print=True,
+                              xml_declaration=True)
+        if uRetval.find('><') > 0:
+            # grr- there has to be a way to pretty print the tax code
+            uRetval = uRetval.replace("><field", ">\n      <field")
+            uRetval = uRetval.replace("><", ">\n    <")
+        return uRetval
+    
 def main(lArgs):
-    global CURRENT_LANG, oConfig
+    global CURRENT_LANG
     (oValues, lArguments) = oParser.parse_args(lArgs)
 
     CURRENT_LANG=oValues.sLang
@@ -546,7 +600,7 @@ def main(lArgs):
     oConfig.readfp(open(sConfigFile))
     oConfig.sConfigFile = sConfigFile
 
-    c = Converter(sInfile, oConfig, oValues)
+    c = Converter(sInfile, oConfig=oConfig, oValues=oValues)
     c.write()
     return 0
 
