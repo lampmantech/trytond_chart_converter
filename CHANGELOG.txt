@@ -1,3 +1,12 @@
+commit fa3fe13fa891d242ae84e22d221e04bf72015bbe
+Date:   Fri Feb 13 03:32:40 2015 +0200
+
+    Made some progress on the tax handling, and now the split texfile
+    refers to the right values in  the CoAs using model/search.
+    
+    Still not handling account.tax.rule.line.template yet,
+    as they are undocumented in Tryton.
+
 commit c1a146cda947f69fcaa1b833199c4f8536d1b894
 Date:   Sat Jan 10 22:44:00 2015 +0200
 

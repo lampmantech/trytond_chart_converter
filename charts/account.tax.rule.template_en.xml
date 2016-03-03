@@ -1,22 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- unfinished tax.rule.line -->
 <tryton>
-  <data>
-    <record model="account.tax.rule.template" id="tax_rule_1">
-      <field name="name">Delivery Inland</field>
-      <field ref="root_uk" name="account"/>
-    </record>
-    <record model="account.tax.rule.template" id="tax_rule_2">
-      <!-- FixMe: nonsense in English  -->
-      <field name="name">Diversion Schemes inland</field>
-      <field ref="root_uk" name="account"/>
-    </record>
-    <record model="account.tax.rule.template" id="tax_rule_3">
-      <field name="name">Sales to abroad</field>
-      <field ref="root_uk" name="account"/>
-    </record>
-    <record model="account.tax.rule.template" id="tax_rule_4">
-      <field name="name">Purchases from abroad</field>
-      <field ref="root_uk" name="account"/>
-    </record>
+    <data>
+    <!-- These are taken from trytond_account_de_skr03-3.2.0/account_de.xml -->
+    <!-- They will need more work -->
+        <record model="account.tax.rule.template" id="tax_rule_uk_no_id_purchase">
+            <field name="name">UK No ID Purchase</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">purchase</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_uk_vat_id_purchase">
+            <field name="name">UK VAT-ID purchase</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">purchase</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_eu_no_id_purchase">
+            <field name="name">EU No ID Purchase</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">purchase</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_eu_vat_id_purchase">
+            <field name="name">EU VAT-ID purchase</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">purchase</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_non_eu_purchase">
+            <field name="name">Non EU purchase</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">purchase</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_uk_vat_id_sale">
+            <field name="name">UK VAT-ID sale</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">sale</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_uk_no_id_sale">
+            <field name="name">UK No ID Sale</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">sale</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_eu_vat_id_sale">
+            <field name="name">EU VAT-ID sale</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">sale</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_eu_no_id_sale">
+            <field name="name">EU No ID Sale</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">sale</field>
+        </record>
+        <record model="account.tax.rule.template" id="tax_rule_non_eu_sale">
+            <field name="name">Non EU Sale</field>
+            <field name="account" model="account.account.template" search="[('code', '=', 'root_uk')]"/>
+            <field name="kind">sale</field>
+        </record>
+	<!-- unfinished
+        <record model="account.tax.rule.line.template" id="tax_rule_line_11">
+            <field name="rule" ref="tax_rule_non_eu_purchase"/>
+            <field name="group" ref="tax_group_purchase"/>
+            <field name="tax" ref="tax_import_19"/>
+        </record>
+        <record model="account.tax.rule.line.template" id="tax_rule_line_10">
+            <field name="rule" ref="tax_rule_non_eu_sale"/>
+            <field name="group" ref="tax_group_sale"/>
+            <field name="tax" ref="tax_export"/>
+        </record>
+        <record model="account.tax.rule.line.template" id="tax_rule_line_13">
+            <field name="rule" ref="tax_rule_eu_vat_id_sale"/>
+            <field name="group" ref="tax_group_sale"/>
+            <field name="tax" ref="tax_eu_sale"/>
+        </record>
+        <record model="account.tax.rule.line.template" id="tax_rule_line_12">
+            <field name="rule" ref="tax_rule_non_eu_purchase"/>
+            <field name="group" ref="tax_group_purchase_reduced"/>
+            <field name="tax" ref="tax_import_7"/>
+        </record>
+        <record model="account.tax.rule.line.template" id="tax_rule_line_15">
+            <field name="rule" ref="tax_rule_eu_vat_id_purchase"/>
+            <field name="group" ref="tax_group_purchase_reduced"/>
+            <field name="tax" ref="tax_eu_7_purchase"/>
+        </record>
+        <record model="account.tax.rule.line.template" id="tax_rule_line_14">
+            <field name="rule" ref="tax_rule_eu_vat_id_purchase"/>
+            <field name="group" ref="tax_group_purchase"/>
+            <field name="tax" ref="tax_eu_19_purchase"/>
+        </record>
+        <record model="account.tax.rule.line.template" id="tax_rule_line_17">
+            <field name="rule" ref="tax_rule_eu_no_id_purchase"/>
+            <field name="group" ref="tax_group_purchase_reduced"/>
+        </record>
+        <record model="account.tax.rule.line.template" id="tax_rule_line_16">
+            <field name="rule" ref="tax_rule_eu_no_id_purchase"/>
+            <field name="group" ref="tax_group_purchase"/>
+        </record>
+	-->    
   </data>
 </tryton>

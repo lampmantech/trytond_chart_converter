@@ -148,7 +148,6 @@ cat << EOF
             <field name="notprintable" eval="$notprintable"/>
 EOF
     fi
-  echo account.tax.code.template.csv $sign
   if [ "$sign" -ne 0 ] ; then
 cat << EOF
             <field name="sign" eval="$sign"/>

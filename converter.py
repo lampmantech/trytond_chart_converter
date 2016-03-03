@@ -252,24 +252,24 @@ class Converter(object):
             f = []
             id = e.get("id")
             name = e.xpath("field[@name='name']")[0].text
+            assert name, "Null name in account.tax.code.template for id="+id+' '+repr(e.text)
             code = e.xpath("field[@name='code']")
             parent = e.xpath("field[@name='parent_id']")
-            if not parent:
-                #? why - not append?
-                continue
-            assert name, "Null name in account.tax.code.template for id="+id+' '+repr(e.text)
-            if parent[0].get("eval"):
-                if not eval(parent[0].get("eval")):
-                    origroot=id
-                    r.append(
-                        m.record(
-                            m.field(name, name='name'),
-                            m.field(name='account', ref=dChartConfig['root_account_template_id']),
-                            model="account.tax.code.template",
-                            id=_('TAX_CODE_TEMPLATE_ID')
-                        )
+            # was if not parent:  continue
+            if not parent or (parent[0].get("eval") and 
+                               not eval(parent[0].get("eval"))):
+                origroot=id
+                code = code[0].text
+                r.append(
+                    m.record(
+                        m.field(name, name='name'),
+                        m.field(code, name='code'),
+                        m.field(name='account', ref=dChartConfig['root_account_template_id']),
+                        model="account.tax.code.template",
+                        id=_('TAX_CODE_TEMPLATE_ID')
                     )
-                    continue
+                )
+                continue
 
             f.append(m.field(name, name='name'))
             f.append(m.field(name='account',
@@ -295,7 +295,7 @@ class Converter(object):
 
         dTaxGroup=dict(self.oConfig.items(model))
         sFile=dTaxGroup['xmlfile']
-        print sFile
+        # print sFile
         assert os.path.exists(sFile), "File not found: "+sFile
         oSubTree=ET.parse(sFile)
 
